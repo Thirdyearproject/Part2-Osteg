@@ -2,7 +2,6 @@ import numpy as np
 from PIL import Image
 
 def calculate_std_dev(image, block_size):
-    """Calculates the standard deviation of each block in an image."""
 
     image_array = np.array(image, dtype=np.float32)
     height, width = image_array.shape[:2]
@@ -29,7 +28,6 @@ def calculate_std_dev(image, block_size):
     return std_dev_image
 
 def otsu_threshold(std_dev_image):
-    """Calculates the Otsu threshold for an image."""
 
     # Flatten the standard deviation image into a 1D array
     std_dev_values = std_dev_image.flatten()
@@ -44,7 +42,7 @@ def otsu_threshold(std_dev_image):
     best_threshold = 0
     max_variance = 0
 
-    for t in range(1, 256):  # Start from 1, not 0 (consistent with binning)
+    for t in range(1, 256): 
         # Separate pixels into two classes based on the threshold
         w0 = np.sum(hist[:t])
         w1 = 1 - w0

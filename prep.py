@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 import math
-import random
+from random import random
 
 def calculate_std_dev(image, block_size):
     image_array = np.array(image, dtype=np.float32)
@@ -57,32 +57,6 @@ def recursive_otsu_thresholding(image, block_size, epsilon=0.1, max_iterations=1
         alpha += k * epsilon
     return None
 
-# Load the image
-image_path = 'image.jpg'
-image = Image.open(image_path)
-
-# Split into RGB channels
-red_channel = image.split()[0]
-green_channel = image.split()[1]
-blue_channel = image.split()[2]
-
-# Define block size
-block_size = 8
-
-# Calculate standard deviation images for each channel
-red_std_dev_image = calculate_std_dev(red_channel, block_size)
-green_std_dev_image = calculate_std_dev(green_channel, block_size)
-blue_std_dev_image = calculate_std_dev(blue_channel, block_size)
-
-# Apply Otsu's method and recursive optimization for each channel
-red_alpha = recursive_otsu_thresholding(red_channel, block_size)
-green_alpha = recursive_otsu_thresholding(green_channel, block_size)
-blue_alpha = recursive_otsu_thresholding(blue_channel, block_size)
-
-# Print the alpha values for each channel
-print("Red channel alpha:", red_alpha)
-print("Green channel alpha:", green_alpha)
-print("Blue channel alpha:", blue_alpha)
 
 def t_n(x, y):
     return 0.4 - 6 / (1 + x**2 + y**2)
@@ -92,20 +66,60 @@ def ikeda_map(u, x, y):
     yn = u * (x * math.sin(t_n(x, y)) + y * math.cos(t_n(x, y)))
     return [xn, yn]
 
-def generate_ikeda_sequence(num_points, num_iterations, u, bound):
-    l = [[random.uniform(-bound, bound), random.uniform(-bound, bound)] for _ in range(num_points)]
-    for _ in range(num_iterations):
-        l = [ikeda_map(u, point[0], point[1]) for point in l]
-    return l
+def generate_key(image, block_size, red_alpha, green_alpha, blue_alpha):
+    # Generate secret key using Ikeda map and alpha values
+    secret_key = ""
+    # Use same initial condition for x and y
+    x0 = 0.1  
+    y0 = 0.1  
+    
+    # Generate key for red channel
+    secret_key += generate_channel_key(image.split()[0], block_size, red_alpha, 0.4, x0, y0)
+    # Generate key for green channel
+    secret_key += generate_channel_key(image.split()[1], block_size, green_alpha, 0.6, x0, y0)
+    # Generate key for blue channel
+    secret_key += generate_channel_key(image.split()[2], block_size, blue_alpha, 0.8, x0, y0)
+    
+    return secret_key
 
-num_points = 10
-num_iterations = 100
-u = 0.8
-bound = 5
-ikeda_sequence = generate_ikeda_sequence(num_points, num_iterations, u, bound)
+def generate_channel_key(channel, block_size, alpha, u, x0, y0):
+    # Generate key for a single channel
+    key = ""
+    image_array = np.array(channel)
+    height, width = image_array.shape[:2]
+    step = block_size // 2
+    for y in range(0, height - block_size + 1, step):
+        for x in range(0, width - block_size + 1, step):
+            block = image_array[int(y):int(y)+block_size, int(x):int(x)+block_size]
+            std_dev = np.std(block)
+            if std_dev > alpha:
+                x, y = ikeda_map(u, x0, y0)
+                # Take the integer part of x and append it to the key
+                key += str(int(x % 2))
+    return key
 
-secret_key = (ikeda_sequence, red_alpha, green_alpha, blue_alpha)
+# Load the image
+image_path = 'image.jpg'
+image = Image.open(image_path)
 
-print("Secret Key:",secret_key)
+# Define block size
+block_size = 8
 
-print("Alpha values (RGB):", red_alpha, green_alpha, blue_alpha)
+# Calculate standard deviation images for each channel
+red_std_dev_image = calculate_std_dev(image.split()[0], block_size)
+green_std_dev_image = calculate_std_dev(image.split()[1], block_size)
+blue_std_dev_image = calculate_std_dev(image.split()[2], block_size)
+
+# Apply Otsu's method and recursive optimization for each channel
+red_alpha = recursive_otsu_thresholding(image.split()[0], block_size)
+green_alpha = recursive_otsu_thresholding(image.split()[1], block_size)
+blue_alpha = recursive_otsu_thresholding(image.split()[2], block_size)
+
+# Print the alpha values for each channel
+print("Red channel alpha:", red_alpha)
+print("Green channel alpha:", green_alpha)
+print("Blue channel alpha:", blue_alpha)
+
+# Generate secret key using Ikeda map and alpha values
+secret_key = generate_key(image, block_size, red_alpha, green_alpha, blue_alpha)
+print("Secret Key:", secret_key)

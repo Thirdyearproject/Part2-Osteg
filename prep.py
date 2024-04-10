@@ -1,5 +1,7 @@
 import numpy as np
 from PIL import Image
+import math
+import random
 
 def calculate_std_dev(image, block_size):
     image_array = np.array(image, dtype=np.float32)
@@ -82,3 +84,28 @@ print("Red channel alpha:", red_alpha)
 print("Green channel alpha:", green_alpha)
 print("Blue channel alpha:", blue_alpha)
 
+def t_n(x, y):
+    return 0.4 - 6 / (1 + x**2 + y**2)
+
+def ikeda_map(u, x, y):
+    xn = 1 + u * (x * math.cos(t_n(x, y)) - y * math.sin(t_n(x, y)))
+    yn = u * (x * math.sin(t_n(x, y)) + y * math.cos(t_n(x, y)))
+    return [xn, yn]
+
+def generate_ikeda_sequence(num_points, num_iterations, u, bound):
+    l = [[random.uniform(-bound, bound), random.uniform(-bound, bound)] for _ in range(num_points)]
+    for _ in range(num_iterations):
+        l = [ikeda_map(u, point[0], point[1]) for point in l]
+    return l
+
+num_points = 10
+num_iterations = 100
+u = 0.8
+bound = 5
+ikeda_sequence = generate_ikeda_sequence(num_points, num_iterations, u, bound)
+
+secret_key = (ikeda_sequence, red_alpha, green_alpha, blue_alpha)
+
+print("Secret Key:",secret_key)
+
+print("Alpha values (RGB):", red_alpha, green_alpha, blue_alpha)

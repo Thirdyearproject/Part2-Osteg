@@ -66,38 +66,6 @@ def ikeda_map(u, x, y):
     yn = u * (x * math.sin(t_n(x, y)) + y * math.cos(t_n(x, y)))
     return [xn, yn]
 
-def generate_key(image, block_size, red_alpha, green_alpha, blue_alpha):
-    # Generate secret key using Ikeda map and alpha values
-    secret_key = ""
-    # Use same initial condition for x and y
-    x0 = 0.1  
-    y0 = 0.1  
-    
-    # Generate key for red channel
-    secret_key += generate_channel_key(image.split()[0], block_size, red_alpha, 0.4, x0, y0)
-    # Generate key for green channel
-    secret_key += generate_channel_key(image.split()[1], block_size, green_alpha, 0.6, x0, y0)
-    # Generate key for blue channel
-    secret_key += generate_channel_key(image.split()[2], block_size, blue_alpha, 0.8, x0, y0)
-    
-    return secret_key
-
-def generate_channel_key(channel, block_size, alpha, u, x0, y0):
-    # Generate key for a single channel
-    key = ""
-    image_array = np.array(channel)
-    height, width = image_array.shape[:2]
-    step = block_size // 2
-    for y in range(0, height - block_size + 1, step):
-        for x in range(0, width - block_size + 1, step):
-            block = image_array[int(y):int(y)+block_size, int(x):int(x)+block_size]
-            std_dev = np.std(block)
-            if std_dev > alpha:
-                x, y = ikeda_map(u, x0, y0)
-                # Take the integer part of x and append it to the key
-                key += str(int(x % 2))
-    return key
-
 # Load the image
 image_path = 'image.jpg'
 image = Image.open(image_path)
@@ -120,6 +88,14 @@ print("Red channel alpha:", red_alpha)
 print("Green channel alpha:", green_alpha)
 print("Blue channel alpha:", blue_alpha)
 
-# Generate secret key using Ikeda map and alpha values
-secret_key = generate_key(image, block_size, red_alpha, green_alpha, blue_alpha)
-print("Secret Key:", secret_key)
+sequence_length = 100  # Example length of the sequence
+ikeda_sequence = []
+u = 0.8  # Example parameter for the Ikeda map
+x0, y0 = 0.1, 0.1  # Initial conditions
+x, y = x0, y0
+for _ in range(sequence_length):
+    x, y = ikeda_map(u, x, y)
+    ikeda_sequence.append([x, y])
+
+# Print or use the Ikeda sequence as needed
+print(ikeda_sequence)

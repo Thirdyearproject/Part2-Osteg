@@ -75,6 +75,7 @@ def generate_keystream(block_size, x0, mu=1, h=0.5, m=20):
     sequence = generate_ikeda_sequence(x0, sequence_length, mu, h, m)
     keystream = [int(x * 1000) % 2 for x in sequence] 
     return keystream 
+
 def get_neighbor_pixels(image_array, y, x, offsets):
     neighbors = []
     for dy, dx in offsets:
@@ -82,7 +83,6 @@ def get_neighbor_pixels(image_array, y, x, offsets):
         if 0 <= ny < image_array.shape[0] and 0 <= nx < image_array.shape[1]:
             neighbors.append(image_array[ny, nx])
     return neighbors
-
 
 def effective_embedding(image_array, candidate_blocks, secret_bits, x0, alpha_values):
     block_size = 4  # Example block size (adjust as needed)
@@ -133,33 +133,53 @@ def get_candidate_blocks(image_array, alpha_values, block_size=8, threshold_fact
                 candidate_blocks.append((y, x))
     return candidate_blocks
 
-def extract_secret_bits(stego_image_array, candidate_blocks, x0, block_size=4):
-    extracted_bits = []
-    delimiter = "001100" 
+def extract_secret_bits(image_array, candidate_blocks, x0, alpha_values):
+    block_size = 4  # Example block size (adjust as needed)
+    alpha_R, alpha_G, alpha_B = alpha_values
 
-    for y, x in candidate_blocks:
+    extracted_bits = []
+
+    for idx, (y, x) in enumerate(candidate_blocks):
         keystream = generate_keystream(block_size, x0)
         offsets = [(-1, 0), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 1)]
         selected_offsets = [offsets[i] for i in range(len(offsets)) if keystream[i] == 1]
-        neighbor_pixels = get_neighbor_pixels(stego_image_array, y, x, selected_offsets)
+        neighbor_pixels = get_neighbor_pixels(image_array, y, x, selected_offsets)
 
-        # Extract from all channels and combine using XOR
-        binary_sequence = ""
+        extracted_bit_sequence = ""
+
         for channel in range(3):
-            central_pixel_binary = format(stego_image_array[y, x, channel], '08b')
+            central_pixel_binary = format(image_array[y, x, channel], '08b')
             neighbor_pixels_binary = ''.join(format(p[channel], '08b') for p in neighbor_pixels)
-            channel_sequence = neighbor_pixels_binary + central_pixel_binary
-            binary_sequence += format(int(channel_sequence, 2) ^ int(binary_sequence, 2), f'0{len(channel_sequence)}b') 
+            binary_sequence = neighbor_pixels_binary + central_pixel_binary
 
-        # Extract bits until delimiter is found
-        for i in range(0, len(binary_sequence), len(delimiter)):
-            extracted_bit_sequence = binary_sequence[i:i+len(delimiter)]
-            if extracted_bit_sequence == delimiter:
-                return extracted_bits  # Stop extraction after delimiter is found
-            else:
-                extracted_bits.append(int(extracted_bit_sequence, 2)) 
+            num_padding_bits = 128 - len(binary_sequence)
+            padding_sequence = generate_ikeda_sequence(x0, num_padding_bits)
+            padding_bits = ''.join(str(int(x * 1000) % 2) for x in padding_sequence)
 
-    return extracted_bits  
+            final_sequence = binary_sequence + padding_bits
+            parity = sum(int(bit) for bit in final_sequence) % 2
+
+            # Extracted bit is the parity bit of the final sequence
+            extracted_bit = parity
+
+            extracted_bit_sequence += str(extracted_bit)
+
+        extracted_bits.append(extracted_bit_sequence)
+
+    return extracted_bits
+
+def decrypt_message(extracted_bits):
+    # Remove delimiter from extracted bits
+    delimiter = "001100"
+    extracted_bits = ''.join(extracted_bits).split(delimiter)[0]
+
+    # Convert binary string to characters
+    message = ""
+    for i in range(0, len(extracted_bits), 8):
+        byte = extracted_bits[i:i+8]
+        message += chr(int(byte, 2))
+
+    return message
 
 # --- Main Embedding Process ---
 
@@ -201,6 +221,31 @@ secret_bits = [int(bit) for bit in ''.join(format(ord(c), '08b') for c in secret
 effective_embedding(image_array, candidate_blocks, secret_bits, x0, (alpha_R, alpha_G, alpha_B))
 
 # Save the stego image
-print(secret_key)
+stego_image_path = "stego_image.png"
 stego_image = Image.fromarray(image_array)
-stego_image.save("stego_image.png")
+stego_image.save(stego_image_path)
+
+# --- Main Extraction Process ---
+
+# Load the stego image
+stego_image = Image.open(stego_image_path)
+stego_image_array = np.array(stego_image)
+
+# Calculate standard deviation images and alpha values for the stego image
+red_std_dev_image_stego = calculate_std_dev(stego_image.split()[0], block_size)
+green_std_dev_image_stego = calculate_std_dev(stego_image.split()[1], block_size)
+blue_std_dev_image_stego = calculate_std_dev(stego_image.split()[2], block_size)
+red_alpha_stego = recursive_otsu_thresholding(stego_image.split()[0], block_size)
+green_alpha_stego = recursive_otsu_thresholding(stego_image.split()[1], block_size)
+blue_alpha_stego = recursive_otsu_thresholding(stego_image.split()[2], block_size)
+
+# Get candidate blocks from the stego image
+candidate_blocks_stego = get_candidate_blocks(stego_image_array, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
+
+# Extract secret bits from the stego image
+extracted_bits = extract_secret_bits(stego_image_array, candidate_blocks_stego, x0, (alpha_R, alpha_G, alpha_B))
+
+# Decrypt the secret message from the extracted bits
+decrypted_message = decrypt_message(extracted_bits)
+
+print("Decrypted Message:", decrypted_message)

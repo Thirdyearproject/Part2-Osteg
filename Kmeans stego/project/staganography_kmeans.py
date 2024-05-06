@@ -802,11 +802,11 @@ def lsb_stegnography():
         with open(f"clusters_lsb.txt", "r") as file:
             for j in range(height * width):
                 line = file.readline()
-                if not line:
-                    break
                 if len(line) == 0:
                     continue
-                r, g, b, cluster = map(int, file.readline().split())
+                if not line:
+                    break
+                r, g, b, cluster = map(int, line.split())
                 if cluster == i:
                     pixels[j // width, j % width] = [r, g, b]
 

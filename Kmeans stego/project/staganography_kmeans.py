@@ -543,12 +543,7 @@ def decryption(string_pt):
     decryption_keys = initial_keys[::-1]
     decrypted_text = des_algorithm(cipher_text, decryption_keys)
     string_decrypt = bin_to_str(decrypted_text)
-    print("Decrypted message is:", string_decrypt)
-
-    if string_pt == string_decrypt:
-        print(
-            "\n---------------------Text Decrypted Successfully!---------------------\n"
-        )
+    return string_decrypt
 
 
 class Pixel:
@@ -944,6 +939,15 @@ class Application(tk.Tk):
                 kmeans(imagename, k, epochs)
                 sorting_clusters()
                 lsb_stegnography()
+                # Display encrypted message
+                messagebox.showinfo("Message Encrypted ", "Message Encrypted")
+
+                # Clear input fields
+                message_entry.delete(0, tk.END)
+                key_entry.delete(0, tk.END)
+                image_entry.delete(0, tk.END)
+                clusters_entry.delete(0, tk.END)
+                epochs_entry.delete(0, tk.END)
 
         # Button to trigger encryption
         encrypt_button = tk.Button(
@@ -956,9 +960,13 @@ class Application(tk.Tk):
         decrypt_window.title("Decryption")
         decrypt_window.geometry("300x200")
         lsb_stegnography_d()
-        decryption(string_pt)
+        decrypted_message = decryption(string_pt)
 
-        # Add widgets to the decryption window as needed
+        # Display the decrypted message
+        decrypted_label = tk.Label(
+            decrypt_window, text=f"Decrypted Message: {decrypted_message}"
+        )
+        decrypted_label.pack()
 
 
 def main():

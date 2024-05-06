@@ -7,6 +7,7 @@ import imageio.v3 as imageio
 import os
 import numpy as np
 from PIL import Image
+from tkinter import filedialog
 
 k = 3
 
@@ -22,6 +23,9 @@ string_pt = ""
 # Constants
 MAX = 100000
 MAXK = 20
+
+import tkinter as tk
+from tkinter import messagebox
 
 
 # Function to convert alphabetical string to binary string
@@ -505,13 +509,12 @@ def des_algorithm(input_text, round_keys):
 
 
 # DES encryption function
-def encryption(string_pt):
+def encryption(string_pt, string_key):
     global string_decrypt
     encryption_keys = []
 
     plain_text = str_to_bin(string_pt)
 
-    string_key = input("Enter the key to be used for encryption (8 Characters only): ")
     key = str_to_bin(string_key)
 
     with open("key.txt", "w") as file1:
@@ -625,16 +628,12 @@ def kmeans_clustering(pixels, k, epochs, total_pixels):
     return cluster_count, pixels
 
 
-def kmeans():
+def kmeans(imagename, k, epochs):
     # Get the current directory
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Image to pixels
-    imagename = input("Enter name of image: ")
     image_path = os.path.join(current_dir, imagename)
-
-    k = int(input("Enter number of clusters(k): "))
-    epochs = int(input("Enter number of iterations(epochs): "))
 
     # Load image
     img = imageio.imread(image_path)
@@ -840,26 +839,131 @@ def lsb_stegnography_d():
         file.write(cipherarr)
 
 
-def main():
+class Application(tk.Tk):
     global string_pt
-    print("STAGANOGRAPHY\n```````````\n")
-    print("Enter 1 for Sender and 2 for Receiver")
-    userchoice = int(input("Choice: "))
 
-    if userchoice == 1:
-        string_pt = input("\nEnter the message to be encrypted (8 Characters only): ")
-        encryption(string_pt)
-        kmeans()
-        sorting_clusters()
-        lsb_stegnography()
-    elif userchoice == 2:
-        # k, width, height = map(
-        #     int, input("Enter number of segments, width and height: ").split()
-        # )
+    def __init__(self):
+        super().__init__()
+
+        self.title("Encryption/Decryption")
+        self.user_choice = tk.IntVar(value=0)  # Variable to store user choice
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Label for displaying "STEGANOGRAPHY"
+        self.steganography_label = tk.Label(
+            self, text="STEGANOGRAPHY", font=("Helvetica", 16, "bold")
+        )
+        self.steganography_label.pack()
+
+        # Button to encrypt
+        self.encrypt_button = tk.Button(
+            self, text="Encrypt", command=self.create_encrypt_window
+        )
+        self.encrypt_button.pack(pady=10)
+
+        # Button to decrypt
+        self.decrypt_button = tk.Button(
+            self, text="Decrypt", command=self.create_decrypt_window
+        )
+        self.decrypt_button.pack(pady=10)
+
+    def create_encrypt_window(self):
+        encrypt_window = tk.Toplevel(self)
+        encrypt_window.title("Encryption")
+        encrypt_window.geometry("400x250")
+
+        # Label and entry widget for inputting the message
+        message_label = tk.Label(
+            encrypt_window,
+            text="Enter the message to be encrypted (8 Characters only):",
+        )
+        message_label.grid(row=0, column=0, padx=10, pady=5)
+        message_entry = tk.Entry(encrypt_window)
+        message_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        # Label and entry widget for inputting the key
+        key_label = tk.Label(
+            encrypt_window,
+            text="Enter the key to be used for encryption (8 Characters only):",
+        )
+        key_label.grid(row=1, column=0, padx=10, pady=5)
+        key_entry = tk.Entry(encrypt_window)
+        key_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        # Button to choose the image file
+        def choose_image():
+            imagename = filedialog.askopenfilename()
+            if imagename:
+                image_entry.delete(0, tk.END)
+                image_entry.insert(0, os.path.basename(imagename))
+
+        choose_image_button = tk.Button(
+            encrypt_window, text="Choose Image", command=choose_image
+        )
+        choose_image_button.grid(row=2, column=0, columnspan=2, padx=10, pady=5)
+
+        # Entry widget for displaying the chosen image name
+        image_entry = tk.Entry(encrypt_window)
+        image_entry.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+
+        # Label and entry widget for inputting the number of clusters
+        clusters_label = tk.Label(
+            encrypt_window,
+            text="Enter the number of clusters (k):",
+        )
+        clusters_label.grid(row=4, column=0, padx=10, pady=5)
+        clusters_entry = tk.Entry(encrypt_window)
+        clusters_entry.grid(row=4, column=1, padx=10, pady=5)
+
+        # Label and entry widget for inputting the number of epochs
+        epochs_label = tk.Label(
+            encrypt_window,
+            text="Enter the number of iterations (epochs):",
+        )
+        epochs_label.grid(row=5, column=0, padx=10, pady=5)
+        epochs_entry = tk.Entry(encrypt_window)
+        epochs_entry.grid(row=5, column=1, padx=10, pady=5)
+
+        # Function to perform encryption
+        def perform_encryption():
+            string_pt = message_entry.get()
+            string_key = key_entry.get()
+            imagename = image_entry.get()
+            k = int(clusters_entry.get())
+            epochs = int(epochs_entry.get())
+
+            # Check if all necessary fields are filled
+            if len(string_pt) != 8 or len(string_key) != 8 or not imagename:
+                # Display an error message if any field is empty or the input message or key length is not 8 characters
+                messagebox.showerror("Error", "Please fill all fields correctly.")
+            else:
+                # Call the encryption function with the input message, key, image name, number of clusters, and epochs
+                encryption(string_pt, string_key)
+                kmeans(imagename, k, epochs)
+                sorting_clusters()
+                lsb_stegnography()
+
+        # Button to trigger encryption
+        encrypt_button = tk.Button(
+            encrypt_window, text="Encrypt", command=perform_encryption
+        )
+        encrypt_button.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+
+    def create_decrypt_window(self):
+        decrypt_window = tk.Toplevel(self)
+        decrypt_window.title("Decryption")
+        decrypt_window.geometry("300x200")
         lsb_stegnography_d()
         decryption(string_pt)
-    else:
-        print("Invalid choice!")
+
+        # Add widgets to the decryption window as needed
+
+
+def main():
+    app = Application()
+    app.mainloop()
 
 
 if __name__ == "__main__":

@@ -211,18 +211,15 @@ def decode_img_data(img):
                     return decoded_data[:-5]
 
 
-def encode_aud_data():
+def encode_aud_data(data, stegofile):
     import wave
 
-    nameoffile = input("Enter name of the file (with extension) :- ")
-    song = wave.open(nameoffile, mode="rb")
+    song = wave.open("Sample_cover_files/cover_audio.wav", mode="rb")
 
     nframes = song.getnframes()
     frames = song.readframes(nframes)
     frame_list = list(frames)
     frame_bytes = bytearray(frame_list)
-
-    data = input("\nEnter the secret message :- ")
 
     res = "".join(format(i, "08b") for i in bytearray(data, encoding="utf-8"))
     print("\nThe string after binary conversion :- " + (res))
@@ -248,7 +245,6 @@ def encode_aud_data():
 
     frame_modified = bytes(frame_bytes)
 
-    stegofile = input("\nEnter name of the stego file (with extension) :- ")
     with wave.open(stegofile, "wb") as fd:
         fd.setparams(song.getparams())
         fd.writeframes(frame_modified)
@@ -256,10 +252,9 @@ def encode_aud_data():
     song.close()
 
 
-def decode_aud_data():
+def decode_aud_data(nameoffile):
     import wave
 
-    nameoffile = input("Enter name of the file to be decoded :- ")
     song = wave.open(nameoffile, mode="rb")
 
     nframes = song.getnframes()
@@ -283,27 +278,8 @@ def decode_aud_data():
         for byte in all_bytes:
             decoded_data += chr(int(byte, 2))
             if decoded_data[-5:] == "*^*^*":
-                print("The Encoded data was :--", decoded_data[:-5])
                 p = 1
-                break
-
-
-def aud_steg():
-    while True:
-        print("\n\t\tAUDIO STEGANOGRAPHY OPERATIONS")
-        print("1. Encode the Text message")
-        print("2. Decode the Text message")
-        print("3. Exit")
-        choice1 = int(input("Enter the Choice:"))
-        if choice1 == 1:
-            encode_aud_data()
-        elif choice1 == 2:
-            decode_aud_data()
-        elif choice1 == 3:
-            break
-        else:
-            print("Incorrect Choice")
-        print("\n")
+                return decoded_data[:-5]
 
 
 def KSA(key):
@@ -425,7 +401,7 @@ def extract(frame):
                     return
 
 
-def encode_vid_data():
+def encode_vid_data(n):
     cap = cv2.VideoCapture("Sample_cover_files/cover_video.mp4")
     vidcap = cv2.VideoCapture("Sample_cover_files/cover_video.mp4")
     fourcc = cv2.VideoWriter_fourcc(*"XVID")
@@ -442,9 +418,9 @@ def encode_vid_data():
         max_frame += 1
     cap.release()
     print("Total number of Frame in selected Video :", max_frame)
-    print("Enter the frame number where you want to embed data : ")
-    n = int(input())
+
     frame_number = 0
+    frame_ = None  # Initialize frame_ outside the loop
     while vidcap.isOpened():
         frame_number += 1
         ret, frame = vidcap.read()
@@ -454,14 +430,15 @@ def encode_vid_data():
             change_frame_with = embed(frame)
             frame_ = change_frame_with
             frame = change_frame_with
-        out.write(frame)
+    out.write(frame)
 
     print("\nEncoded the data successfully in the video file.")
     return frame_
 
 
-def decode_vid_data(frame_):
+def decode_vid_data(frame_, n):
     cap = cv2.VideoCapture("stego_video.mp4")
+
     max_frame = 0
     while cap.isOpened():
         ret, frame = cap.read()
@@ -469,8 +446,7 @@ def decode_vid_data(frame_):
             break
         max_frame += 1
     print("Total number of Frame in selected Video :", max_frame)
-    print("Enter the secret frame number from where you want to extract data")
-    n = int(input())
+
     vidcap = cv2.VideoCapture("stego_video.mp4")
     frame_number = 0
     while vidcap.isOpened():
@@ -479,26 +455,7 @@ def decode_vid_data(frame_):
         if ret == False:
             break
         if frame_number == n:
-            extract(frame_)
-            return
-
-
-def vid_steg():
-    while True:
-        print("\n\t\tVIDEO STEGANOGRAPHY OPERATIONS")
-        print("1. Encode the Text message")
-        print("2. Decode the Text message")
-        print("3. Exit")
-        choice1 = int(input("Enter the Choice:"))
-        if choice1 == 1:
-            a = encode_vid_data()
-        elif choice1 == 2:
-            decode_vid_data(a)
-        elif choice1 == 3:
-            break
-        else:
-            print("Incorrect Choice")
-        print("\n")
+            return extract(frame_)
 
 
 class TextStegWindow(tk.Toplevel):
@@ -715,28 +672,39 @@ class AudioStegWindow(tk.Toplevel):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Audio")
 
+        # file_label = tk.Label(
+        #     encode_window,
+        #     text="Enter the name of the  audio file to encoding (with extension):",
+        # )
+        # file_label.pack()
+
+        # file_entry = tk.Entry(encode_window)
+        # file_entry.pack()
+
         data_label = tk.Label(encode_window, text="Enter data to encode:")
         data_label.pack()
 
         data_entry = tk.Entry(encode_window)
         data_entry.pack()
 
-        file_label = tk.Label(
+        stego_label = tk.Label(
             encode_window,
             text="Enter the name of the Stego audio file after encoding (with extension):",
         )
-        file_label.pack()
+        stego_label.pack()
 
-        file_entry = tk.Entry(encode_window)
-        file_entry.pack()
+        stego_entry = tk.Entry(encode_window)
+        stego_entry.pack()
 
         try:
 
             def perform_audio_encoding():
                 data = data_entry.get()
-                file_name = file_entry.get()
+                # file_name = file_entry.get()
+                stego_name = stego_entry.get()
+
                 # Call the encode_aud_data function passing data and file_name
-                encode_aud_data(data, file_name)
+                encode_aud_data(data, stego_name)
                 success_label.config(text="Audio successfully encoded!")
 
             encode_button = tk.Button(
@@ -751,8 +719,33 @@ class AudioStegWindow(tk.Toplevel):
         success_label.pack()
 
     def decode_audio(self):
-        # Implement audio decoding functionality
-        pass
+        decode_window = tk.Toplevel(self)
+        decode_window.title("Decode Audio")
+
+        stego_label = tk.Label(
+            decode_window,
+            text="Enter the stego audio file name (with extension) to decode the message:",
+        )
+        stego_label.pack()
+
+        stego_entry = tk.Entry(decode_window)
+        stego_entry.pack()
+
+        def perform_audio_decoding():
+            stego_file = stego_entry.get()
+            try:
+                decoded_message = decode_aud_data(stego_file)
+                decoded_message_label.config(text="Decoded Message: " + decoded_message)
+            except Exception as e:
+                decoded_message_label.config(text="Decoding failed: " + str(e))
+
+        decode_button = tk.Button(
+            decode_window, text="Decode", command=perform_audio_decoding
+        )
+        decode_button.pack()
+
+        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
+        decoded_message_label.pack()
 
 
 class VideoStegWindow(tk.Toplevel):
@@ -760,7 +753,7 @@ class VideoStegWindow(tk.Toplevel):
         super().__init__(master)
         self.title("Video Steganography Operations")
         self.geometry("400x300")
-
+        self.secret = None
         self.create_widgets()
 
     def create_widgets(self):
@@ -781,28 +774,20 @@ class VideoStegWindow(tk.Toplevel):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Video")
 
-        data_label = tk.Label(encode_window, text="Enter data to encode:")
+        data_label = tk.Label(
+            encode_window, text="Enter the frame number where you want to embed data : "
+        )
         data_label.pack()
 
         data_entry = tk.Entry(encode_window)
         data_entry.pack()
 
-        file_label = tk.Label(
-            encode_window,
-            text="Enter the name of the Stego video file after encoding (with extension):",
-        )
-        file_label.pack()
-
-        file_entry = tk.Entry(encode_window)
-        file_entry.pack()
-
         try:
 
             def perform_video_encoding():
                 data = data_entry.get()
-                file_name = file_entry.get()
                 # Call the encode_vid_data function passing data and file_name
-                encode_vid_data(data, file_name)
+                self.secret = encode_vid_data(data)
                 success_label.config(text="Video successfully encoded!")
 
             encode_button = tk.Button(
@@ -817,8 +802,35 @@ class VideoStegWindow(tk.Toplevel):
         success_label.pack()
 
     def decode_video(self):
-        # Implement video decoding functionality
-        pass
+        decode_window = tk.Toplevel(self)
+        decode_window.title("Decode Video")
+
+        stego_label = tk.Label(
+            decode_window,
+            text="Enter the secret frame number from where you want to extract data",
+        )
+        stego_label.pack()
+
+        stego_entry = tk.Entry(decode_window)
+        stego_entry.pack()
+
+        def perform_video_decoding():
+            stego_file = stego_entry.get()
+            try:
+                decoded_message = decode_vid_data(self.secret, stego_file)
+                decoded_message_label.config(
+                    text="Decoded Message: " + str(decoded_message)
+                )
+            except Exception as e:
+                decoded_message_label.config(text="Decoding failed: " + str(e))
+
+        decode_button = tk.Button(
+            decode_window, text="Decode", command=perform_video_decoding
+        )
+        decode_button.pack()
+
+        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
+        decoded_message_label.pack()
 
 
 class SteganographyApp(tk.Tk):

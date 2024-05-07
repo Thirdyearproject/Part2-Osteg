@@ -310,9 +310,7 @@ def preparing_key_array(s):
     return [ord(c) for c in s]
 
 
-def encryption(plaintext):
-    print("Enter the key : ")
-    key = input()
+def encryption(plaintext, key):
     key = preparing_key_array(key)
 
     S = KSA(key)
@@ -327,9 +325,8 @@ def encryption(plaintext):
     return ctext
 
 
-def decryption(ciphertext):
+def decryption(ciphertext, key):
     print("Enter the key : ")
-    key = input()
     key = preparing_key_array(key)
 
     S = KSA(key)
@@ -344,10 +341,8 @@ def decryption(ciphertext):
     return dtext
 
 
-def embed(frame):
-    data = input("\nEnter the data to be Encoded in Video :")
-    data = encryption(data)
-    print("The encrypted data is : ", data)
+def embed(frame, data, key):
+    data = encryption(data, key)
     if len(data) == 0:
         raise ValueError("Data entered to be encoded is empty")
 
@@ -372,10 +367,10 @@ def embed(frame):
                 index_data += 1
             if index_data >= length_data:
                 break
-        return frame
+        return frame, data
 
 
-def extract(frame):
+def extract(frame, key):
     data_binary = ""
     final_decoded_msg = ""
     for i in frame:
@@ -393,7 +388,7 @@ def extract(frame):
                 if decoded_data[-5:] == "*^*^*":
                     for i in range(0, len(decoded_data) - 5):
                         final_decoded_msg += decoded_data[i]
-                    final_decoded_msg = decryption(final_decoded_msg)
+                    final_decoded_msg = decryption(final_decoded_msg, key)
                     print(
                         "\n\nThe Encoded data which was hidden in the Video was :--\n",
                         final_decoded_msg,
@@ -401,7 +396,7 @@ def extract(frame):
                     return
 
 
-def encode_vid_data(n):
+def encode_vid_data(n, data, key):
     cap = cv2.VideoCapture("Sample_cover_files/cover_video.mp4")
     vidcap = cv2.VideoCapture("Sample_cover_files/cover_video.mp4")
     fourcc = cv2.VideoWriter_fourcc(*"XVID")
@@ -418,30 +413,29 @@ def encode_vid_data(n):
         max_frame += 1
     cap.release()
     print("Total number of Frame in selected Video :", max_frame)
-
     frame_number = 0
-    frame_ = None  # Initialize frame_ outside the loop
     while vidcap.isOpened():
         frame_number += 1
         ret, frame = vidcap.read()
         if ret == False:
             break
-        if frame_number == n:
-            change_frame_with = embed(frame)
+        if frame_number == int(n):
+            change_frame_with, encripted_data = embed(frame, data, key)
             frame_ = change_frame_with
             frame = change_frame_with
-    out.write(frame)
+            break
+        out.write(frame)
 
     print("\nEncoded the data successfully in the video file.")
-    return frame_
+    return frame_, encripted_data
 
 
-def decode_vid_data(frame_, n):
+def decode_vid_data(frame_, n, key):
     cap = cv2.VideoCapture("stego_video.mp4")
-
     max_frame = 0
     while cap.isOpened():
         ret, frame = cap.read()
+        print(ret)
         if ret == False:
             break
         max_frame += 1
@@ -454,8 +448,9 @@ def decode_vid_data(frame_, n):
         ret, frame = vidcap.read()
         if ret == False:
             break
-        if frame_number == n:
-            return extract(frame_)
+        if frame_number == int(n):
+            extract(frame_, key)
+            return
 
 
 class TextStegWindow(tk.Toplevel):
@@ -774,21 +769,38 @@ class VideoStegWindow(tk.Toplevel):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Video")
 
-        data_label = tk.Label(
+        n_label = tk.Label(
             encode_window, text="Enter the frame number where you want to embed data : "
         )
+        n_label.pack()
+
+        n_entry = tk.Entry(encode_window)
+        n_entry.pack()
+
+        data_label = tk.Label(encode_window, text="Enter the  data : ")
         data_label.pack()
 
         data_entry = tk.Entry(encode_window)
         data_entry.pack()
 
+        key_label = tk.Label(encode_window, text="Enter the key : ")
+        key_label.pack()
+
+        key_entry = tk.Entry(encode_window)
+        key_entry.pack()
+
         try:
 
             def perform_video_encoding():
                 data = data_entry.get()
+                n = n_entry.get()
+                key = key_entry.get()
                 # Call the encode_vid_data function passing data and file_name
-                self.secret = encode_vid_data(data)
-                success_label.config(text="Video successfully encoded!")
+                self.secret, encripted_data = encode_vid_data(n, data, key)
+                success_label.config(
+                    text="Video successfully encoded! \n encripted data is:"
+                    + str(encripted_data[:-5])
+                )
 
             encode_button = tk.Button(
                 encode_window, text="Encode", command=perform_video_encoding
@@ -814,13 +826,21 @@ class VideoStegWindow(tk.Toplevel):
         stego_entry = tk.Entry(decode_window)
         stego_entry.pack()
 
+        key_label = tk.Label(decode_window, text="Enter the key : ")
+        key_label.pack()
+
+        key_entry = tk.Entry(decode_window)
+        key_entry.pack()
+
         def perform_video_decoding():
             stego_file = stego_entry.get()
+            key = key_entry.get()
             try:
-                decoded_message = decode_vid_data(self.secret, stego_file)
-                decoded_message_label.config(
-                    text="Decoded Message: " + str(decoded_message)
-                )
+                if self.secret is not None:
+                    decoded_message = decode_vid_data(self.secret, stego_file, key)
+                    decoded_message_label.config(
+                        text="Decoded Message: " + str(decoded_message)
+                    )
             except Exception as e:
                 decoded_message_label.config(text="Decoding failed: " + str(e))
 

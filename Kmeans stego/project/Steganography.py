@@ -148,14 +148,9 @@ def msgtobinary(msg):
     return result
 
 
-def encode_img_data(img):
-    data = input("\nEnter the data to be Encoded in Image :")
+def encode_img_data(img, data, nameoffile):
     if len(data) == 0:
         raise ValueError("Data entered to be encoded is empty")
-
-    nameoffile = input(
-        "\nEnter the name of the New Image (Stego Image) after Encoding(with extension):"
-    )
 
     no_of_bytes = (img.shape[0] * img.shape[1] * 3) // 8
 
@@ -213,35 +208,7 @@ def decode_img_data(img):
             for byte in total_bytes:
                 decoded_data += chr(int(byte, 2))
                 if decoded_data[-5:] == "*^*^*":
-                    print(
-                        "\n\nThe Encoded data which was hidden in the Image was :--  ",
-                        decoded_data[:-5],
-                    )
-                    return
-
-
-def img_steg():
-    while True:
-        print("\n\t\tIMAGE STEGANOGRAPHY OPERATIONS\n")
-        print("1. Encode the Text message")
-        print("2. Decode the Text message")
-        print("3. Exit")
-        choice1 = int(input("Enter the Choice: "))
-        if choice1 == 1:
-            image = cv2.imread("Sample_cover_files/cover_image.jpg")
-            encode_img_data(image)
-        elif choice1 == 2:
-            image1 = cv2.imread(
-                input(
-                    "Enter the Image you need to Decode to get the Secret message :  "
-                )
-            )
-            decode_img_data(image1)
-        elif choice1 == 3:
-            break
-        else:
-            print("Incorrect Choice")
-        print("\n")
+                    return decoded_data[:-5]
 
 
 def encode_aud_data():
@@ -629,6 +596,231 @@ class TextStegWindow(tk.Toplevel):
         decoded_message_label.pack()
 
 
+class ImageStegWindow(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Image Steganography Operations")
+        self.geometry("400x300")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.encode_button = tk.Button(
+            self, text="Encode Image", command=self.encode_image
+        )
+        self.encode_button.pack()
+
+        self.decode_button = tk.Button(
+            self, text="Decode Image", command=self.decode_image
+        )
+        self.decode_button.pack()
+
+        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button.pack(pady=20)
+
+    def encode_image(self):
+        encode_window = tk.Toplevel(self)
+        encode_window.title("Encode Image")
+
+        data_label = tk.Label(encode_window, text="Enter data to encode:")
+        data_label.pack()
+
+        data_entry = tk.Entry(encode_window)
+        data_entry.pack()
+
+        file_label = tk.Label(
+            encode_window,
+            text="Enter the name of the Stego image file after encoding (with extension):",
+        )
+        file_label.pack()
+
+        file_entry = tk.Entry(encode_window)
+        file_entry.pack()
+
+        try:
+
+            def perform_image_encoding():
+                data = data_entry.get()
+                image = cv2.imread("Sample_cover_files/cover_image.jpg")
+                file_name = file_entry.get()
+                # Call the encode_img_data function passing data and file_name
+                encode_img_data(image, data, file_name)
+                success_label.config(text="Image successfully encoded!")
+
+            encode_button = tk.Button(
+                encode_window, text="Encode", command=perform_image_encoding
+            )
+            encode_button.pack()
+
+        except Exception as e:
+            success_label.config(text=f"Encoding failed: {str(e)}")
+
+        success_label = tk.Label(encode_window, text="", fg="green")
+        success_label.pack()
+
+    def decode_image(self):
+        decode_window = tk.Toplevel(self)
+        decode_window.title("Decode Image")
+
+        stego_label = tk.Label(
+            decode_window,
+            text="Enter the stego image file name (with extension) to decode the message:",
+        )
+        stego_label.pack()
+
+        stego_entry = tk.Entry(decode_window)
+        stego_entry.pack()
+
+        def perform_image_decoding():
+            stego_file = stego_entry.get()
+            image1 = cv2.imread(stego_file)
+            try:
+                decoded_message = decode_img_data(image1)
+                decoded_message_label.config(text="Decoded Message: " + decoded_message)
+            except Exception as e:
+                decoded_message_label.config(text="Decoding failed: " + str(e))
+
+        decode_button = tk.Button(
+            decode_window, text="Decode", command=perform_image_decoding
+        )
+        decode_button.pack()
+
+        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
+        decoded_message_label.pack()
+
+
+class AudioStegWindow(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Audio Steganography Operations")
+        self.geometry("400x300")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.encode_button = tk.Button(
+            self, text="Encode Audio", command=self.encode_audio
+        )
+        self.encode_button.pack()
+
+        self.decode_button = tk.Button(
+            self, text="Decode Audio", command=self.decode_audio
+        )
+        self.decode_button.pack()
+
+        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button.pack(pady=20)
+
+    def encode_audio(self):
+        encode_window = tk.Toplevel(self)
+        encode_window.title("Encode Audio")
+
+        data_label = tk.Label(encode_window, text="Enter data to encode:")
+        data_label.pack()
+
+        data_entry = tk.Entry(encode_window)
+        data_entry.pack()
+
+        file_label = tk.Label(
+            encode_window,
+            text="Enter the name of the Stego audio file after encoding (with extension):",
+        )
+        file_label.pack()
+
+        file_entry = tk.Entry(encode_window)
+        file_entry.pack()
+
+        try:
+
+            def perform_audio_encoding():
+                data = data_entry.get()
+                file_name = file_entry.get()
+                # Call the encode_aud_data function passing data and file_name
+                encode_aud_data(data, file_name)
+                success_label.config(text="Audio successfully encoded!")
+
+            encode_button = tk.Button(
+                encode_window, text="Encode", command=perform_audio_encoding
+            )
+            encode_button.pack()
+
+        except Exception as e:
+            success_label.config(text=f"Encoding failed: {str(e)}")
+
+        success_label = tk.Label(encode_window, text="", fg="green")
+        success_label.pack()
+
+    def decode_audio(self):
+        # Implement audio decoding functionality
+        pass
+
+
+class VideoStegWindow(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Video Steganography Operations")
+        self.geometry("400x300")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.encode_button = tk.Button(
+            self, text="Encode Video", command=self.encode_video
+        )
+        self.encode_button.pack()
+
+        self.decode_button = tk.Button(
+            self, text="Decode Video", command=self.decode_video
+        )
+        self.decode_button.pack()
+
+        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button.pack(pady=20)
+
+    def encode_video(self):
+        encode_window = tk.Toplevel(self)
+        encode_window.title("Encode Video")
+
+        data_label = tk.Label(encode_window, text="Enter data to encode:")
+        data_label.pack()
+
+        data_entry = tk.Entry(encode_window)
+        data_entry.pack()
+
+        file_label = tk.Label(
+            encode_window,
+            text="Enter the name of the Stego video file after encoding (with extension):",
+        )
+        file_label.pack()
+
+        file_entry = tk.Entry(encode_window)
+        file_entry.pack()
+
+        try:
+
+            def perform_video_encoding():
+                data = data_entry.get()
+                file_name = file_entry.get()
+                # Call the encode_vid_data function passing data and file_name
+                encode_vid_data(data, file_name)
+                success_label.config(text="Video successfully encoded!")
+
+            encode_button = tk.Button(
+                encode_window, text="Encode", command=perform_video_encoding
+            )
+            encode_button.pack()
+
+        except Exception as e:
+            success_label.config(text=f"Encoding failed: {str(e)}")
+
+        success_label = tk.Label(encode_window, text="", fg="green")
+        success_label.pack()
+
+    def decode_video(self):
+        # Implement video decoding functionality
+        pass
+
+
 class SteganographyApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -668,16 +860,18 @@ class SteganographyApp(tk.Tk):
     def text_steg(self):
         text_steg_window = TextStegWindow(self)
         text_steg_window.grab_set()
-        # txt_steg()
 
     def image_steg(self):
-        img_steg()
+        image_steg_window = ImageStegWindow(self)
+        image_steg_window.grab_set()
 
     def audio_steg(self):
-        aud_steg()
+        audio_steg_window = AudioStegWindow(self)
+        audio_steg_window.grab_set()
 
     def video_steg(self):
-        vid_steg()
+        video_steg_window = VideoStegWindow(self)
+        video_steg_window.grab_set()
 
 
 def main():

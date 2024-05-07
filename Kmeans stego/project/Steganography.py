@@ -1,19 +1,14 @@
-# coding: utf-8
-
-# In[1]:
-
-
 import numpy as np
 import pandas as pand
 import os
 import cv2
 from matplotlib import pyplot as plt
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
 
 
-# In[2]:
-
-
-def txt_encode(text):
+def txt_encode(text, stxt):
     l = len(text)
     i = 0
     add = ""
@@ -41,9 +36,7 @@ def txt_encode(text):
     HM_SK = ""
     ZWC = {"00": "\u200C", "01": "\u202C", "11": "\u202D", "10": "\u200E"}
     file1 = open("Sample_cover_files/cover_text.txt", "r+")
-    nameoffile = input(
-        "\nEnter the name of the Stego file after Encoding(with extension):- "
-    )
+    nameoffile = stxt
     file3 = open(nameoffile, "w+", encoding="utf-8")
     word = []
     for line in file1:
@@ -72,10 +65,7 @@ def txt_encode(text):
     print("\nStego file has successfully generated")
 
 
-# In[3]:
-
-
-def encode_txt_data():
+def encode_txt_data(text1, stxt, count_label):
     count2 = 0
     file1 = open("Sample_cover_files/cover_text.txt", "r")
     for line in file1:
@@ -83,18 +73,17 @@ def encode_txt_data():
             count2 = count2 + 1
     file1.close()
     bt = int(count2)
-    print("Maximum number of words that can be inserted :- ", int(bt / 6))
-    text1 = input("\nEnter data to be encoded:- ")
+    max_words_message = "Maximum number of words that can be inserted: {}".format(
+        int(bt / 6)
+    )
+    count_label.config(text=max_words_message)
     l = len(text1)
     if l <= bt:
         print("\nInputed message can be hidden in the cover file\n")
-        txt_encode(text1)
+        txt_encode(text1, stxt)
     else:
         print("\nString is too big please reduce string size")
         encode_txt_data()
-
-
-# In[4]:
 
 
 def BinaryToDecimal(binary):
@@ -102,14 +91,8 @@ def BinaryToDecimal(binary):
     return string
 
 
-# In[5]:
-
-
-def decode_txt_data():
+def decode_txt_data(stego):
     ZWC_reverse = {"\u200C": "00", "\u202C": "01", "\u202D": "11", "\u200E": "10"}
-    stego = input(
-        "\nPlease enter the stego file name(with extension) to decode the message:- "
-    )
     file4 = open(stego, "r", encoding="utf-8")
     temp = ""
     for line in file4:
@@ -146,31 +129,7 @@ def decode_txt_data():
         elif t3 == "0011":
             decimal_data = BinaryToDecimal(t4)
             final += chr((decimal_data ^ 170) - 48)
-    print("\nMessage after decoding from the stego file:- ", final)
-
-
-# In[6]:
-
-
-def txt_steg():
-    while True:
-        print("\n\t\tTEXT STEGANOGRAPHY OPERATIONS")
-        print("1. Encode the Text message")
-        print("2. Decode the Text message")
-        print("3. Exit")
-        choice1 = int(input("Enter the Choice:"))
-        if choice1 == 1:
-            encode_txt_data()
-        elif choice1 == 2:
-            decrypted = decode_txt_data()
-        elif choice1 == 3:
-            break
-        else:
-            print("Incorrect Choice")
-        print("\n")
-
-
-# In[7]:
+    return final
 
 
 def msgtobinary(msg):
@@ -187,9 +146,6 @@ def msgtobinary(msg):
         raise TypeError("Input type is not supported in this function")
 
     return result
-
-
-# In[8]:
 
 
 def encode_img_data(img):
@@ -242,9 +198,6 @@ def encode_img_data(img):
     )
 
 
-# In[9]:
-
-
 def decode_img_data(img):
     data_binary = ""
     for i in img:
@@ -265,9 +218,6 @@ def decode_img_data(img):
                         decoded_data[:-5],
                     )
                     return
-
-
-# In[10]:
 
 
 def img_steg():
@@ -292,9 +242,6 @@ def img_steg():
         else:
             print("Incorrect Choice")
         print("\n")
-
-
-# In[11]:
 
 
 def encode_aud_data():
@@ -342,9 +289,6 @@ def encode_aud_data():
     song.close()
 
 
-# In[12]:
-
-
 def decode_aud_data():
     import wave
 
@@ -377,9 +321,6 @@ def decode_aud_data():
                 break
 
 
-# In[13]:
-
-
 def aud_steg():
     while True:
         print("\n\t\tAUDIO STEGANOGRAPHY OPERATIONS")
@@ -398,9 +339,6 @@ def aud_steg():
         print("\n")
 
 
-# In[14]:
-
-
 def KSA(key):
     key_length = len(key)
     S = list(range(256))
@@ -409,9 +347,6 @@ def KSA(key):
         j = (j + S[i] + key[i % key_length]) % 256
         S[i], S[j] = S[j], S[i]
     return S
-
-
-# In[15]:
 
 
 def PRGA(S, n):
@@ -428,14 +363,8 @@ def PRGA(S, n):
     return key
 
 
-# In[16]:
-
-
 def preparing_key_array(s):
     return [ord(c) for c in s]
-
-
-# In[17]:
 
 
 def encryption(plaintext):
@@ -455,9 +384,6 @@ def encryption(plaintext):
     return ctext
 
 
-# In[18]:
-
-
 def decryption(ciphertext):
     print("Enter the key : ")
     key = input()
@@ -473,9 +399,6 @@ def decryption(ciphertext):
     for c in decoded:
         dtext = dtext + chr(c)
     return dtext
-
-
-# In[19]:
 
 
 def embed(frame):
@@ -509,9 +432,6 @@ def embed(frame):
         return frame
 
 
-# In[20]:
-
-
 def extract(frame):
     data_binary = ""
     final_decoded_msg = ""
@@ -536,9 +456,6 @@ def extract(frame):
                         final_decoded_msg,
                     )
                     return
-
-
-# In[21]:
 
 
 def encode_vid_data():
@@ -576,9 +493,6 @@ def encode_vid_data():
     return frame_
 
 
-# In[22]:
-
-
 def decode_vid_data(frame_):
     cap = cv2.VideoCapture("stego_video.mp4")
     max_frame = 0
@@ -602,9 +516,6 @@ def decode_vid_data(frame_):
             return
 
 
-# In[23]:
-
-
 def vid_steg():
     while True:
         print("\n\t\tVIDEO STEGANOGRAPHY OPERATIONS")
@@ -623,39 +534,157 @@ def vid_steg():
         print("\n")
 
 
-# In[24]:
+class TextStegWindow(tk.Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Text Steganography Operations")
+        self.geometry("400x300")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.encode_button = tk.Button(
+            self, text="Encode Text", command=self.encode_text
+        )
+        self.encode_button.pack()
+
+        self.decode_button = tk.Button(
+            self, text="Decode Text", command=self.decode_text
+        )
+        self.decode_button.pack()
+
+        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button.pack(pady=20)
+
+    def encode_text(self):
+        encrypt_window = tk.Toplevel(self)
+        encrypt_window.title("Encrypt Text")
+
+        encrypt_label = tk.Label(encrypt_window, text="Enter text to encrypt:")
+        encrypt_label.pack()
+
+        encrypt_entry = tk.Entry(encrypt_window)
+        encrypt_entry.pack()
+
+        text_label = tk.Label(
+            encrypt_window,
+            text="Enter the name of the Stego file after Encoding(with extension):",
+        )
+        text_label.pack()
+
+        text_entry = tk.Entry(encrypt_window)
+        text_entry.pack()
+
+        count_label = tk.Label(encrypt_window, text="")
+        count_label.pack()
+
+        def perform_txt_encription():
+            message = encrypt_entry.get()
+            txt = text_entry.get()
+            try:
+                encode_txt_data(message, txt, count_label)
+                # If encryption is successful, update the success message
+                success_label.config(text="Text successfully encoded!")
+            except Exception as e:
+                # If encryption fails, update the error message
+                success_label.config(text=f"Encryption failed: {str(e)}")
+
+        encrypt_button = tk.Button(
+            encrypt_window, text="Encrypt", command=perform_txt_encription
+        )
+        encrypt_button.pack()
+
+        success_label = tk.Label(encrypt_window, text="", fg="green")
+        success_label.pack()
+
+    def decode_text(self):
+        decrypt_window = tk.Toplevel(self)
+        decrypt_window.title("Decrypt Text")
+
+        decrypt_label = tk.Label(
+            decrypt_window,
+            text="Enter the stego file name(with extension) to decode the message:",
+        )
+        decrypt_label.pack()
+
+        decrypt_entry = tk.Entry(decrypt_window)
+        decrypt_entry.pack()
+
+        def perform_txt_decryption():
+            stego_file = decrypt_entry.get()
+            try:
+                decoded_message = decode_txt_data(stego_file)
+                # Display the decoded message
+                decoded_message_label.config(text="Decoded Message: " + decoded_message)
+            except Exception as e:
+                # If decoding fails, display the error message
+                decoded_message_label.config(text="Decoding failed: " + str(e))
+
+        decrypt_button = tk.Button(
+            decrypt_window, text="Decrypt", command=perform_txt_decryption
+        )
+        decrypt_button.pack()
+
+        decoded_message_label = tk.Label(decrypt_window, text="", fg="blue")
+        decoded_message_label.pack()
+
+
+class SteganographyApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Steganography App")
+        self.geometry("400x300")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Main Menu
+        self.main_menu_label = tk.Label(self, text="Main Menu", font=("Arial", 14))
+        self.main_menu_label.pack(pady=10)
+
+        self.text_steg_button = tk.Button(
+            self, text="Text Steganography", command=self.text_steg
+        )
+        self.text_steg_button.pack()
+
+        self.image_steg_button = tk.Button(
+            self, text="Image Steganography", command=self.image_steg
+        )
+        self.image_steg_button.pack()
+
+        self.audio_steg_button = tk.Button(
+            self, text="Audio Steganography", command=self.audio_steg
+        )
+        self.audio_steg_button.pack()
+
+        self.video_steg_button = tk.Button(
+            self, text="Video Steganography", command=self.video_steg
+        )
+        self.video_steg_button.pack()
+
+        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button.pack(pady=20)
+
+    def text_steg(self):
+        text_steg_window = TextStegWindow(self)
+        text_steg_window.grab_set()
+        # txt_steg()
+
+    def image_steg(self):
+        img_steg()
+
+    def audio_steg(self):
+        aud_steg()
+
+    def video_steg(self):
+        vid_steg()
 
 
 def main():
-    print("\t\t      STEGANOGRAPHY")
-    while True:
-        print("\n\t\t\tMAIN MENU\n")
-        print("1. IMAGE STEGANOGRAPHY {Hiding Text in Image cover file}")
-        print("2. TEXT STEGANOGRAPHY {Hiding Text in Text cover file}")
-        print("3. AUDIO STEGANOGRAPHY {Hiding Text in Audio cover file}")
-        print("4. VIDEO STEGANOGRAPHY {Hiding Text in Video cover file}")
-        print("5. Exit\n")
-        choice1 = int(input("Enter the Choice: "))
-        if choice1 == 1:
-            img_steg()
-        elif choice1 == 2:
-            txt_steg()
-        elif choice1 == 3:
-            aud_steg()
-        elif choice1 == 4:
-            vid_steg()
-        elif choice1 == 5:
-            break
-        else:
-            print("Incorrect Choice")
-        print("\n\n")
 
-
-# In[27]:
+    app = SteganographyApp()
+    app.mainloop()
 
 
 if __name__ == "__main__":
     main()
-
-
-# In[ ]:

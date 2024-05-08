@@ -179,71 +179,80 @@ def decrypt_message(extracted_bits):
 
     return message
 
-# --- Main Embedding Process ---
+# Main function to perform embedding or decryption based on user input
+def main():
+    option = input("Choose an option (1: Embedding, 2: Decryption): ")
 
-# Load the image
-image_path = 'image.jpg'  # Replace with your image path
-image = Image.open(image_path)
-image_array = np.array(image)
+    if option == '1':  # Embedding
+        # Load image
+        image_path = input("Enter the image path: ")
+        image = Image.open(image_path)
+        image_array = np.array(image)
 
-# Define block size
-block_size = 8
+        # Get user input for x0 and secret message
+        x0 = float(input("Enter the value of x0: "))
+        secret_message = input("Enter the secret message: ")
+        secret_message = secret_message + 'a'
+        # Additional parameters for embedding
+        block_size = 8  # Adjust as needed
 
-# Calculate standard deviation images and alpha values (using recursive Otsu's method)
-red_std_dev_image = calculate_std_dev(image.split()[0], block_size)
-green_std_dev_image = calculate_std_dev(image.split()[1], block_size)
-blue_std_dev_image = calculate_std_dev(image.split()[2], block_size)
-red_alpha = recursive_otsu_thresholding(image.split()[0], block_size)
-green_alpha = recursive_otsu_thresholding(image.split()[1], block_size)
-blue_alpha = recursive_otsu_thresholding(image.split()[2], block_size)
+        # Calculate standard deviation images and alpha values (using recursive Otsu's method)
+        red_std_dev_image = calculate_std_dev(image.split()[0], block_size)
+        green_std_dev_image = calculate_std_dev(image.split()[1], block_size)
+        blue_std_dev_image = calculate_std_dev(image.split()[2], block_size)
+        red_alpha = recursive_otsu_thresholding(image.split()[0], block_size)
+        green_alpha = recursive_otsu_thresholding(image.split()[1], block_size)
+        blue_alpha = recursive_otsu_thresholding(image.split()[2], block_size)
 
-# Get candidate blocks
-candidate_blocks = get_candidate_blocks(image_array, (red_alpha, green_alpha, blue_alpha))
+        # Get candidate blocks
+        candidate_blocks = get_candidate_blocks(image_array, (red_alpha, green_alpha, blue_alpha))
 
-# --- Secret Key and Message Preparation ---
+        # Prepare secret message bits
+        secret_bits = [int(bit) for bit in ''.join(format(ord(c), '08b') for c in secret_message)]
 
-# Secret key (replace with actual values)
-secret_key = (0.1,red_alpha,green_alpha,blue_alpha)  # (x0, factor_R, factor_G, factor_B)
-x0, factor_R, factor_G, factor_B = secret_key
+        # Effective embedding
+        effective_embedding(image_array, candidate_blocks, secret_bits, x0, (red_alpha, green_alpha, blue_alpha))
 
-# Calculate alpha values 
-alpha_R = 1 + (factor_R * 0.1)
-alpha_G = 1 + (factor_G * 0.1)
-alpha_B = 1 + (factor_B * 0.1)
+        # Save the stego image
+        stego_image_path = "stego_image.png"
+        stego_image = Image.fromarray(image_array)
+        stego_image.save(stego_image_path)
 
-# Prepare secret message bits
-secret_message = "Hello,world!"  # Example message 
-secret_bits = [int(bit) for bit in ''.join(format(ord(c), '08b') for c in secret_message)]
+        print("Embedding completed. Stego image saved as stego_image.png.")
 
-# --- Perform Embedding --- 
-effective_embedding(image_array, candidate_blocks, secret_bits, x0, (alpha_R, alpha_G, alpha_B))
+    elif option == '2':  # Decryption
+        # Load stego image
+        stego_image_path = input("Enter the stego image path: ")
+        stego_image = Image.open(stego_image_path)
+        stego_image_array = np.array(stego_image)
 
-# Save the stego image
-stego_image_path = "stego_image.png"
-stego_image = Image.fromarray(image_array)
-stego_image.save(stego_image_path)
+        # Get user input for x0
+        x0 = float(input("Enter the value of x0: "))
 
-# --- Main Extraction Process ---
+        # Additional parameters for decryption
+        block_size = 8  # Adjust as needed
 
-# Load the stego image
-stego_image = Image.open(stego_image_path)
-stego_image_array = np.array(stego_image)
+        # Calculate standard deviation images and alpha values for the stego image
+        red_std_dev_image_stego = calculate_std_dev(stego_image.split()[0], block_size)
+        green_std_dev_image_stego = calculate_std_dev(stego_image.split()[1], block_size)
+        blue_std_dev_image_stego = calculate_std_dev(stego_image.split()[2], block_size)
+        red_alpha_stego = recursive_otsu_thresholding(stego_image.split()[0], block_size)
+        green_alpha_stego = recursive_otsu_thresholding(stego_image.split()[1], block_size)
+        blue_alpha_stego = recursive_otsu_thresholding(stego_image.split()[2], block_size)
 
-# Calculate standard deviation images and alpha values for the stego image
-red_std_dev_image_stego = calculate_std_dev(stego_image.split()[0], block_size)
-green_std_dev_image_stego = calculate_std_dev(stego_image.split()[1], block_size)
-blue_std_dev_image_stego = calculate_std_dev(stego_image.split()[2], block_size)
-red_alpha_stego = recursive_otsu_thresholding(stego_image.split()[0], block_size)
-green_alpha_stego = recursive_otsu_thresholding(stego_image.split()[1], block_size)
-blue_alpha_stego = recursive_otsu_thresholding(stego_image.split()[2], block_size)
+        # Get candidate blocks from the stego image
+        candidate_blocks_stego = get_candidate_blocks(stego_image_array, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
 
-# Get candidate blocks from the stego image
-candidate_blocks_stego = get_candidate_blocks(stego_image_array, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
+        # Extract secret bits from the stego image
+        extracted_bits = extract_secret_bits(stego_image_array, candidate_blocks_stego, x0, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
 
-# Extract secret bits from the stego image
-extracted_bits = extract_secret_bits(stego_image_array, candidate_blocks_stego, x0, (alpha_R, alpha_G, alpha_B))
+        # Decrypt the secret message from the extracted bits
+        decrypted_message = decrypt_message(extracted_bits)
+        decrypted_message = decrypted_message[:-1]
+        print("Decrypted Message:", decrypted_message)
 
-# Decrypt the secret message from the extracted bits
-decrypted_message = decrypt_message(extracted_bits)
+    else:
+        print("Invalid option. Please choose 1 or 2.")
 
-print("Decrypted Message:", decrypted_message)
+if __name__ == "__main__":
+    main()

@@ -451,51 +451,61 @@ def decode_vid_data(frame_, n, key):
         if frame_number == int(n):
             extract(frame_, key)
             return
+# Color constants
+DARK_GREY = '#121212'
+MEDIUM_GREY = '#1F1B24'
+OCEAN_BLUE = '#464EB8'
+WHITE = "white"
 
+# Font constants
+FONT = ("Times New Roman", 17)
+BUTTON_FONT = ("Times New Roman", 15)
 
 class TextStegWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Text Steganography Operations")
-        self.geometry("400x300")
+        self.geometry("500x300")
+        self.configure(bg=DARK_GREY)
 
         self.create_widgets()
 
     def create_widgets(self):
         self.encode_button = tk.Button(
-            self, text="Encode Text", command=self.encode_text
+            self, text="Encode Text",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.encode_text
         )
-        self.encode_button.pack()
+        self.encode_button.pack(pady=10)
 
         self.decode_button = tk.Button(
-            self, text="Decode Text", command=self.decode_text
+            self, text="Decode Text",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.decode_text
         )
-        self.decode_button.pack()
+        self.decode_button.pack(pady=10)
 
-        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button = tk.Button(self, text="Exit",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.destroy)
         self.exit_button.pack(pady=20)
 
     def encode_text(self):
         encrypt_window = tk.Toplevel(self)
         encrypt_window.title("Encrypt Text")
+        encrypt_window.configure(bg=DARK_GREY)
 
-        encrypt_label = tk.Label(encrypt_window, text="Enter text to encrypt:")
-        encrypt_label.pack()
+        encrypt_label = tk.Label(encrypt_window, font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter text to encrypt:")
+        encrypt_label.pack(pady=10)
 
         encrypt_entry = tk.Entry(encrypt_window)
-        encrypt_entry.pack()
+        encrypt_entry.pack(pady=10)
 
         text_label = tk.Label(
-            encrypt_window,
+            encrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, 
             text="Enter the name of the Stego file after Encoding(with extension):",
         )
-        text_label.pack()
+        text_label.pack(pady=10)
 
         text_entry = tk.Entry(encrypt_window)
-        text_entry.pack()
+        text_entry.pack(pady=10)
 
-        count_label = tk.Label(encrypt_window, text="")
-        count_label.pack()
+        count_label = tk.Label(encrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        count_label.pack(pady=10)
 
         def perform_txt_encription():
             message = encrypt_entry.get()
@@ -509,85 +519,88 @@ class TextStegWindow(tk.Toplevel):
                 success_label.config(text=f"Encryption failed: {str(e)}")
 
         encrypt_button = tk.Button(
-            encrypt_window, text="Encrypt", command=perform_txt_encription
+            encrypt_window, text="Encrypt",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_txt_encription
         )
-        encrypt_button.pack()
+        encrypt_button.pack(pady=10)
 
-        success_label = tk.Label(encrypt_window, text="", fg="green")
-        success_label.pack()
+        success_label = tk.Label(encrypt_window,font=FONT, bg=MEDIUM_GREY, text="", fg=WHITE)
+        success_label.pack(pady=10)
 
     def decode_text(self):
         decrypt_window = tk.Toplevel(self)
         decrypt_window.title("Decrypt Text")
+        decrypt_window.configure(bg=DARK_GREY)
 
         decrypt_label = tk.Label(
-            decrypt_window,
+            decrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the stego file name(with extension) to decode the message:",
         )
-        decrypt_label.pack()
+        decrypt_label.pack(pady=10)
 
         decrypt_entry = tk.Entry(decrypt_window)
-        decrypt_entry.pack()
+        decrypt_entry.pack(pady=10)
 
         def perform_txt_decryption():
             stego_file = decrypt_entry.get()
             try:
                 decoded_message = decode_txt_data(stego_file)
                 # Display the decoded message
-                decoded_message_label.config(text="Decoded Message: " + decoded_message)
+                decoded_message_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="Decoded Message: " + decoded_message)
             except Exception as e:
                 # If decoding fails, display the error message
-                decoded_message_label.config(text="Decoding failed: " + str(e))
+                decoded_message_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="Decoding failed: " + str(e))
 
         decrypt_button = tk.Button(
-            decrypt_window, text="Decrypt", command=perform_txt_decryption
+            decrypt_window, text="Decrypt",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_txt_decryption
         )
-        decrypt_button.pack()
+        decrypt_button.pack(pady=10)
 
-        decoded_message_label = tk.Label(decrypt_window, text="", fg="blue")
-        decoded_message_label.pack()
+        decoded_message_label = tk.Label(decrypt_window, font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        decoded_message_label.pack(pady=10)
 
 
 class ImageStegWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Image Steganography Operations")
-        self.geometry("400x300")
+        self.geometry("500x300")
+        self.configure(bg=DARK_GREY)
 
         self.create_widgets()
 
     def create_widgets(self):
         self.encode_button = tk.Button(
-            self, text="Encode Image", command=self.encode_image
+            self, text="Encode Image",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.encode_image
         )
-        self.encode_button.pack()
+        self.encode_button.pack(pady=10)
 
         self.decode_button = tk.Button(
-            self, text="Decode Image", command=self.decode_image
+            self, text="Decode Image",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.decode_image
         )
-        self.decode_button.pack()
+        self.decode_button.pack(pady=10)
 
-        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button = tk.Button(self, text="Exit",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.destroy)
         self.exit_button.pack(pady=20)
 
     def encode_image(self):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Image")
+        encode_window.configure(bg=DARK_GREY)
 
-        data_label = tk.Label(encode_window, text="Enter data to encode:")
-        data_label.pack()
+        data_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter data to encode:")
+        data_label.pack(pady=10)
 
         data_entry = tk.Entry(encode_window)
-        data_entry.pack()
+        data_entry.pack(pady=10)
 
         file_label = tk.Label(
-            encode_window,
+            encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the name of the Stego image file after encoding (with extension):",
         )
-        file_label.pack()
+        file_label.pack(pady=10)
 
         file_entry = tk.Entry(encode_window)
-        file_entry.pack()
+        file_entry.pack(pady=10)
 
         try:
 
@@ -600,28 +613,29 @@ class ImageStegWindow(tk.Toplevel):
                 success_label.config(text="Image successfully encoded!")
 
             encode_button = tk.Button(
-                encode_window, text="Encode", command=perform_image_encoding
+                encode_window, text="Encode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_image_encoding
             )
-            encode_button.pack()
+            encode_button.pack(pady=10)
 
         except Exception as e:
             success_label.config(text=f"Encoding failed: {str(e)}")
 
-        success_label = tk.Label(encode_window, text="", fg="green")
-        success_label.pack()
+        success_label = tk.Label(encode_window, font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="")
+        success_label.pack(pady=10)
 
     def decode_image(self):
         decode_window = tk.Toplevel(self)
         decode_window.title("Decode Image")
+        decode_window.configure(bg=DARK_GREY)
 
         stego_label = tk.Label(
-            decode_window,
+            decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the stego image file name (with extension) to decode the message:",
         )
-        stego_label.pack()
+        stego_label.pack(pady=10)
 
         stego_entry = tk.Entry(decode_window)
-        stego_entry.pack()
+        stego_entry.pack(pady=10)
 
         def perform_image_decoding():
             stego_file = stego_entry.get()
@@ -633,63 +647,65 @@ class ImageStegWindow(tk.Toplevel):
                 decoded_message_label.config(text="Decoding failed: " + str(e))
 
         decode_button = tk.Button(
-            decode_window, text="Decode", command=perform_image_decoding
+            decode_window, text="Decode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_image_decoding
         )
-        decode_button.pack()
+        decode_button.pack(pady=10)
 
-        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
-        decoded_message_label.pack()
+        decoded_message_label = tk.Label(decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        decoded_message_label.pack(pady=10)
 
 
 class AudioStegWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Audio Steganography Operations")
-        self.geometry("400x300")
+        self.geometry("500x300")
+        self.configure(bg=DARK_GREY)
 
         self.create_widgets()
 
     def create_widgets(self):
         self.encode_button = tk.Button(
-            self, text="Encode Audio", command=self.encode_audio
+            self, text="Encode Audio",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,  command=self.encode_audio
         )
-        self.encode_button.pack()
+        self.encode_button.pack(pady=10)
 
         self.decode_button = tk.Button(
-            self, text="Decode Audio", command=self.decode_audio
+            self, text="Decode Audio",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,  command=self.decode_audio
         )
-        self.decode_button.pack()
+        self.decode_button.pack(pady=10)
 
-        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button = tk.Button(self,font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,  text="Exit", command=self.destroy)
         self.exit_button.pack(pady=20)
 
     def encode_audio(self):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Audio")
+        encode_window.configure(bg=DARK_GREY)
 
         # file_label = tk.Label(
         #     encode_window,
         #     text="Enter the name of the  audio file to encoding (with extension):",
         # )
-        # file_label.pack()
+        # file_label.pack(pady=10)
 
         # file_entry = tk.Entry(encode_window)
-        # file_entry.pack()
+        # file_entry.pack(pady=10)
 
-        data_label = tk.Label(encode_window, text="Enter data to encode:")
-        data_label.pack()
+        data_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter data to encode:")
+        data_label.pack(pady=10)
 
         data_entry = tk.Entry(encode_window)
-        data_entry.pack()
+        data_entry.pack(pady=10)
 
         stego_label = tk.Label(
-            encode_window,
+            encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the name of the Stego audio file after encoding (with extension):",
         )
-        stego_label.pack()
+        stego_label.pack(pady=10)
 
         stego_entry = tk.Entry(encode_window)
-        stego_entry.pack()
+        stego_entry.pack(pady=10)
 
         try:
 
@@ -703,91 +719,94 @@ class AudioStegWindow(tk.Toplevel):
                 success_label.config(text="Audio successfully encoded!")
 
             encode_button = tk.Button(
-                encode_window, text="Encode", command=perform_audio_encoding
+                encode_window, text="Encode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_audio_encoding
             )
-            encode_button.pack()
+            encode_button.pack(pady=10)
 
         except Exception as e:
-            success_label.config(text=f"Encoding failed: {str(e)}")
+            success_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE,text=f"Encoding failed: {str(e)}")
 
-        success_label = tk.Label(encode_window, text="", fg="green")
-        success_label.pack()
+        success_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        success_label.pack(pady=10)
 
     def decode_audio(self):
         decode_window = tk.Toplevel(self)
         decode_window.title("Decode Audio")
+        decode_window.configure(bg=DARK_GREY)
 
         stego_label = tk.Label(
-            decode_window,
+            decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the stego audio file name (with extension) to decode the message:",
         )
-        stego_label.pack()
+        stego_label.pack(pady=10)
 
         stego_entry = tk.Entry(decode_window)
-        stego_entry.pack()
+        stego_entry.pack(pady=10)
 
         def perform_audio_decoding():
             stego_file = stego_entry.get()
             try:
                 decoded_message = decode_aud_data(stego_file)
-                decoded_message_label.config(text="Decoded Message: " + decoded_message)
+                decoded_message_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="Decoded Message: " + decoded_message)
             except Exception as e:
                 decoded_message_label.config(text="Decoding failed: " + str(e))
 
         decode_button = tk.Button(
-            decode_window, text="Decode", command=perform_audio_decoding
+            decode_window, text="Decode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_audio_decoding
         )
-        decode_button.pack()
+        decode_button.pack(pady=10)
 
-        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
-        decoded_message_label.pack()
+        decoded_message_label = tk.Label(decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        decoded_message_label.pack(pady=10)
 
 
 class VideoStegWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Video Steganography Operations")
-        self.geometry("400x300")
+        self.geometry("500x300")
+        self.configure(bg=DARK_GREY)
         self.secret = None
         self.create_widgets()
 
     def create_widgets(self):
         self.encode_button = tk.Button(
-            self, text="Encode Video", command=self.encode_video
+            self, text="Encode Video",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.encode_video
         )
-        self.encode_button.pack()
+        self.encode_button.pack(pady=10)
 
         self.decode_button = tk.Button(
-            self, text="Decode Video", command=self.decode_video
+            self, text="Decode Video",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.decode_video
         )
-        self.decode_button.pack()
+        self.decode_button.pack(pady=10)
 
-        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
+        self.exit_button = tk.Button(self,font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, text="Exit", command=self.destroy)
         self.exit_button.pack(pady=20)
 
     def encode_video(self):
         encode_window = tk.Toplevel(self)
         encode_window.title("Encode Video")
+        encode_window.configure(bg=DARK_GREY)
 
         n_label = tk.Label(
-            encode_window, text="Enter the frame number where you want to embed data : "
+            encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter the frame number where you want to embed data : "
         )
-        n_label.pack()
+        n_label.pack(pady=10)
 
         n_entry = tk.Entry(encode_window)
-        n_entry.pack()
+        n_entry.pack(pady=10)
 
-        data_label = tk.Label(encode_window, text="Enter the  data : ")
-        data_label.pack()
+        data_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter the  data : ")
+        data_label.pack(pady=10)
 
         data_entry = tk.Entry(encode_window)
-        data_entry.pack()
+        data_entry.pack(pady=10)
 
-        key_label = tk.Label(encode_window, text="Enter the key : ")
-        key_label.pack()
+        key_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter the key : ")
+        key_label.pack(pady=10)
 
         key_entry = tk.Entry(encode_window)
-        key_entry.pack()
+        key_entry.pack(pady=10)
 
         try:
 
@@ -798,39 +817,40 @@ class VideoStegWindow(tk.Toplevel):
                 # Call the encode_vid_data function passing data and file_name
                 self.secret, encripted_data = encode_vid_data(n, data, key)
                 success_label.config(
-                    text="Video successfully encoded! \n encripted data is:"
+                    font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="Video successfully encoded! \n encripted data is:"
                     + str(encripted_data[:-5])
                 )
 
             encode_button = tk.Button(
-                encode_window, text="Encode", command=perform_video_encoding
+                encode_window, text="Encode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_video_encoding
             )
-            encode_button.pack()
+            encode_button.pack(pady=10)
 
         except Exception as e:
             success_label.config(text=f"Encoding failed: {str(e)}")
 
-        success_label = tk.Label(encode_window, text="", fg="green")
-        success_label.pack()
+        success_label = tk.Label(encode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        success_label.pack(pady=10)
 
     def decode_video(self):
         decode_window = tk.Toplevel(self)
         decode_window.title("Decode Video")
+        decode_window.configure(bg=DARK_GREY)
 
         stego_label = tk.Label(
             decode_window,
             text="Enter the secret frame number from where you want to extract data",
         )
-        stego_label.pack()
+        stego_label.pack(pady=10)
 
         stego_entry = tk.Entry(decode_window)
-        stego_entry.pack()
+        stego_entry.pack(pady=10)
 
-        key_label = tk.Label(decode_window, text="Enter the key : ")
-        key_label.pack()
+        key_label = tk.Label(decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Enter the key : ")
+        key_label.pack(pady=10)
 
         key_entry = tk.Entry(decode_window)
-        key_entry.pack()
+        key_entry.pack(pady=10)
 
         def perform_video_decoding():
             stego_file = stego_entry.get()
@@ -838,56 +858,56 @@ class VideoStegWindow(tk.Toplevel):
             try:
                 if self.secret is not None:
                     decoded_message = decode_vid_data(self.secret, stego_file, key)
-                    decoded_message_label.config(
-                        text="Decoded Message: " + str(decoded_message)
+                    decoded_message_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Decoded Message: " + str(decoded_message)
                     )
             except Exception as e:
-                decoded_message_label.config(text="Decoding failed: " + str(e))
+                decoded_message_label.config(font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Decoding failed: " + str(e))
 
         decode_button = tk.Button(
-            decode_window, text="Decode", command=perform_video_decoding
+            decode_window, text="Decode",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_video_decoding
         )
-        decode_button.pack()
+        decode_button.pack(pady=10)
 
-        decoded_message_label = tk.Label(decode_window, text="", fg="blue")
-        decoded_message_label.pack()
+        decoded_message_label = tk.Label(decode_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="")
+        decoded_message_label.pack(pady=10)
 
 
 class SteganographyApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Steganography App")
-        self.geometry("400x300")
+        self.geometry("450x350")
+        self.configure(bg=DARK_GREY)
 
         self.create_widgets()
 
     def create_widgets(self):
         # Main Menu
-        self.main_menu_label = tk.Label(self, text="Main Menu", font=("Arial", 14))
+        self.main_menu_label = tk.Label(self, text="Main Menu", font=FONT, bg=MEDIUM_GREY, fg=WHITE)
         self.main_menu_label.pack(pady=10)
 
         self.text_steg_button = tk.Button(
-            self, text="Text Steganography", command=self.text_steg
+            self, text="Text Steganography",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.text_steg
         )
-        self.text_steg_button.pack()
+        self.text_steg_button.pack(pady=10)
 
         self.image_steg_button = tk.Button(
-            self, text="Image Steganography", command=self.image_steg
+            self, text="Image Steganography",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.image_steg
         )
-        self.image_steg_button.pack()
+        self.image_steg_button.pack(pady=10)
 
         self.audio_steg_button = tk.Button(
-            self, text="Audio Steganography", command=self.audio_steg
+            self, text="Audio Steganography",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.audio_steg
         )
-        self.audio_steg_button.pack()
+        self.audio_steg_button.pack(pady=10)
 
         self.video_steg_button = tk.Button(
-            self, text="Video Steganography", command=self.video_steg
+            self, text="Video Steganography",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.video_steg
         )
-        self.video_steg_button.pack()
+        self.video_steg_button.pack(pady=10)
 
-        self.exit_button = tk.Button(self, text="Exit", command=self.destroy)
-        self.exit_button.pack(pady=20)
+        self.exit_button = tk.Button(self, text="Exit",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.destroy)
+        self.exit_button.pack(pady=10)
 
     def text_steg(self):
         text_steg_window = TextStegWindow(self)

@@ -9,6 +9,16 @@ import numpy as np
 from PIL import Image
 from tkinter import filedialog
 
+# Color constants
+DARK_GREY = '#121212'
+MEDIUM_GREY = '#1F1B24'
+OCEAN_BLUE = '#464EB8'
+WHITE = "white"
+
+# Font constants
+FONT = ("Times New Roman", 17)
+BUTTON_FONT = ("Times New Roman", 15)
+
 k = 3
 
 # Global variables
@@ -841,37 +851,39 @@ class Application(tk.Tk):
         super().__init__()
 
         self.title("Encryption/Decryption")
+        self.geometry("300x150")
         self.user_choice = tk.IntVar(value=0)  # Variable to store user choice
-
+        self.configure(bg=DARK_GREY)
         self.create_widgets()
 
     def create_widgets(self):
         # Label for displaying "STEGANOGRAPHY"
         self.steganography_label = tk.Label(
-            self, text="STEGANOGRAPHY", font=("Helvetica", 16, "bold")
+            self, text="STEGANOGRAPHY", font=FONT, bg=MEDIUM_GREY, fg=WHITE
         )
         self.steganography_label.pack()
 
         # Button to encrypt
         self.encrypt_button = tk.Button(
-            self, text="Encrypt", command=self.create_encrypt_window
+            self, text="Encrypt",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.create_encrypt_window
         )
         self.encrypt_button.pack(pady=10)
 
         # Button to decrypt
         self.decrypt_button = tk.Button(
-            self, text="Decrypt", command=self.create_decrypt_window
+            self, text="Decrypt",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=self.create_decrypt_window
         )
         self.decrypt_button.pack(pady=10)
 
     def create_encrypt_window(self):
         encrypt_window = tk.Toplevel(self)
         encrypt_window.title("Encryption")
-        encrypt_window.geometry("400x250")
+        encrypt_window.geometry("750x300")
+        encrypt_window.configure(bg=DARK_GREY)
 
         # Label and entry widget for inputting the message
         message_label = tk.Label(
-            encrypt_window,
+            encrypt_window, font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the message to be encrypted (8 Characters only):",
         )
         message_label.grid(row=0, column=0, padx=10, pady=5)
@@ -880,7 +892,7 @@ class Application(tk.Tk):
 
         # Label and entry widget for inputting the key
         key_label = tk.Label(
-            encrypt_window,
+            encrypt_window, font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the key to be used for encryption (8 Characters only):",
         )
         key_label.grid(row=1, column=0, padx=10, pady=5)
@@ -895,7 +907,7 @@ class Application(tk.Tk):
                 image_entry.insert(0, os.path.basename(imagename))
 
         choose_image_button = tk.Button(
-            encrypt_window, text="Choose Image", command=choose_image
+            encrypt_window,font=BUTTON_FONT, bg=OCEAN_BLUE, text="Choose Image", command=choose_image
         )
         choose_image_button.grid(row=2, column=0, columnspan=2, padx=10, pady=5)
 
@@ -905,7 +917,7 @@ class Application(tk.Tk):
 
         # Label and entry widget for inputting the number of clusters
         clusters_label = tk.Label(
-            encrypt_window,
+            encrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the number of clusters (k):",
         )
         clusters_label.grid(row=4, column=0, padx=10, pady=5)
@@ -914,7 +926,7 @@ class Application(tk.Tk):
 
         # Label and entry widget for inputting the number of epochs
         epochs_label = tk.Label(
-            encrypt_window,
+            encrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE,
             text="Enter the number of iterations (epochs):",
         )
         epochs_label.grid(row=5, column=0, padx=10, pady=5)
@@ -951,20 +963,21 @@ class Application(tk.Tk):
 
         # Button to trigger encryption
         encrypt_button = tk.Button(
-            encrypt_window, text="Encrypt", command=perform_encryption
+            encrypt_window, text="Encrypt",font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=perform_encryption
         )
         encrypt_button.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
 
     def create_decrypt_window(self):
         decrypt_window = tk.Toplevel(self)
         decrypt_window.title("Decryption")
-        decrypt_window.geometry("300x200")
+        decrypt_window.geometry("400x300")
+        decrypt_window.configure(bg=DARK_GREY)
         lsb_stegnography_d()
         decrypted_message = decryption(string_pt)
 
         # Display the decrypted message
         decrypted_label = tk.Label(
-            decrypt_window, text=f"Decrypted Message: {decrypted_message}"
+            decrypt_window,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text=f"Decrypted Message: {decrypted_message}"
         )
         decrypted_label.pack()
 

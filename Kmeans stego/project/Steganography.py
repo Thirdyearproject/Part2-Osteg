@@ -7,6 +7,11 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
+# Color constants
+DARK_GREY = '#121212'
+MEDIUM_GREY = '#1F1B24'
+OCEAN_BLUE = '#464EB8'
+WHITE = "white"
 
 def txt_encode(text, stxt):
     l = len(text)

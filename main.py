@@ -1,6 +1,18 @@
-import numpy as np
+import tkinter as tk
+from tkinter import filedialog
 from PIL import Image
+import numpy as np
 import math
+
+# Color constants
+DARK_GREY = '#121212'
+MEDIUM_GREY = '#1F1B24'
+OCEAN_BLUE = '#464EB8'
+WHITE = "white"
+
+# Font constants
+FONT = ("Times New Roman", 17)
+BUTTON_FONT = ("Times New Roman", 15)
 
 def calculate_std_dev(image, block_size):
     image_array = np.array(image, dtype=np.float32)
@@ -165,11 +177,10 @@ def extract_secret_bits(image_array, candidate_blocks, x0, alpha_values):
 
     return extracted_bits
 
-def decrypt_message(extracted_bits):
+def decrypt_secret_message(extracted_bits):
     # Remove delimiter from extracted bits
     delimiter = "000000"
     extracted_bits = ''.join(extracted_bits).split(delimiter)[0]
-    print(extracted_bits)
 
     # Convert binary string to characters
     message = ""
@@ -179,80 +190,115 @@ def decrypt_message(extracted_bits):
 
     return message
 
-# Main function to perform embedding or decryption based on user input
-def main():
-    option = input("Choose an option (1: Embedding, 2: Decryption): ")
+def embed_message():
+    image_path = filedialog.askopenfilename(title="Select Image File")
+    if not image_path:
+        return
+    
+    x0 = float(x0_entry.get())
+    secret_message = secret_message_entry.get()
+    secret_message = secret_message + 'a'
+    # Load image
+    image = Image.open(image_path)
+    image_array = np.array(image)
 
-    if option == '1':  # Embedding
-        # Load image
-        image_path = input("Enter the image path: ")
-        image = Image.open(image_path)
-        image_array = np.array(image)
+    # Additional parameters for embedding
+    block_size = 8  # Adjust as needed
 
-        # Get user input for x0 and secret message
-        x0 = float(input("Enter the value of x0: "))
-        secret_message = input("Enter the secret message: ")
-        secret_message = secret_message + 'a'
-        # Additional parameters for embedding
-        block_size = 8  # Adjust as needed
+    # Calculate standard deviation images and alpha values (using recursive Otsu's method)
+    red_std_dev_image = calculate_std_dev(image.split()[0], block_size)
+    green_std_dev_image = calculate_std_dev(image.split()[1], block_size)
+    blue_std_dev_image = calculate_std_dev(image.split()[2], block_size)
+    red_alpha = recursive_otsu_thresholding(image.split()[0], block_size)
+    green_alpha = recursive_otsu_thresholding(image.split()[1], block_size)
+    blue_alpha = recursive_otsu_thresholding(image.split()[2], block_size)
 
-        # Calculate standard deviation images and alpha values (using recursive Otsu's method)
-        red_std_dev_image = calculate_std_dev(image.split()[0], block_size)
-        green_std_dev_image = calculate_std_dev(image.split()[1], block_size)
-        blue_std_dev_image = calculate_std_dev(image.split()[2], block_size)
-        red_alpha = recursive_otsu_thresholding(image.split()[0], block_size)
-        green_alpha = recursive_otsu_thresholding(image.split()[1], block_size)
-        blue_alpha = recursive_otsu_thresholding(image.split()[2], block_size)
+    # Get candidate blocks
+    candidate_blocks = get_candidate_blocks(image_array, (red_alpha, green_alpha, blue_alpha))
 
-        # Get candidate blocks
-        candidate_blocks = get_candidate_blocks(image_array, (red_alpha, green_alpha, blue_alpha))
+    # Prepare secret message bits
+    secret_bits = [int(bit) for bit in ''.join(format(ord(c), '08b') for c in secret_message)]
 
-        # Prepare secret message bits
-        secret_bits = [int(bit) for bit in ''.join(format(ord(c), '08b') for c in secret_message)]
+    # Effective embedding
+    effective_embedding(image_array, candidate_blocks, secret_bits, x0, (red_alpha, green_alpha, blue_alpha))
 
-        # Effective embedding
-        effective_embedding(image_array, candidate_blocks, secret_bits, x0, (red_alpha, green_alpha, blue_alpha))
+    # Save the stego image
+    stego_image_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")], title="Save Stego Image As")
+    if not stego_image_path:
+        return
+    stego_image = Image.fromarray(image_array)
+    stego_image.save(stego_image_path)
 
-        # Save the stego image
-        stego_image_path = "stego_image.png"
-        stego_image = Image.fromarray(image_array)
-        stego_image.save(stego_image_path)
+    result_label.config(text="Embedding completed. Stego image saved as " + stego_image_path)
 
-        print("Embedding completed. Stego image saved as stego_image.png.")
+def decrypt_message():
+    stego_image_path = filedialog.askopenfilename(title="Select Stego Image File")
+    if not stego_image_path:
+        return
+    
+    x0 = float(x0_entry.get())
 
-    elif option == '2':  # Decryption
-        # Load stego image
-        stego_image_path = input("Enter the stego image path: ")
-        stego_image = Image.open(stego_image_path)
-        stego_image_array = np.array(stego_image)
+    # Load stego image
+    stego_image = Image.open(stego_image_path)
+    stego_image_array = np.array(stego_image)
 
-        # Get user input for x0
-        x0 = float(input("Enter the value of x0: "))
+    # Additional parameters for decryption
+    block_size = 8  # Adjust as needed
 
-        # Additional parameters for decryption
-        block_size = 8  # Adjust as needed
+    # Calculate standard deviation images and alpha values for the stego image
+    red_std_dev_image_stego = calculate_std_dev(stego_image.split()[0], block_size)
+    green_std_dev_image_stego = calculate_std_dev(stego_image.split()[1], block_size)
+    blue_std_dev_image_stego = calculate_std_dev(stego_image.split()[2], block_size)
+    red_alpha_stego = recursive_otsu_thresholding(stego_image.split()[0], block_size)
+    green_alpha_stego = recursive_otsu_thresholding(stego_image.split()[1], block_size)
+    blue_alpha_stego = recursive_otsu_thresholding(stego_image.split()[2], block_size)
 
-        # Calculate standard deviation images and alpha values for the stego image
-        red_std_dev_image_stego = calculate_std_dev(stego_image.split()[0], block_size)
-        green_std_dev_image_stego = calculate_std_dev(stego_image.split()[1], block_size)
-        blue_std_dev_image_stego = calculate_std_dev(stego_image.split()[2], block_size)
-        red_alpha_stego = recursive_otsu_thresholding(stego_image.split()[0], block_size)
-        green_alpha_stego = recursive_otsu_thresholding(stego_image.split()[1], block_size)
-        blue_alpha_stego = recursive_otsu_thresholding(stego_image.split()[2], block_size)
+    # Get candidate blocks from the stego image
+    candidate_blocks_stego = get_candidate_blocks(stego_image_array, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
 
-        # Get candidate blocks from the stego image
-        candidate_blocks_stego = get_candidate_blocks(stego_image_array, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
+    # Extract secret bits from the stego image
+    extracted_bits = extract_secret_bits(stego_image_array, candidate_blocks_stego, x0, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
 
-        # Extract secret bits from the stego image
-        extracted_bits = extract_secret_bits(stego_image_array, candidate_blocks_stego, x0, (red_alpha_stego, green_alpha_stego, blue_alpha_stego))
+    # Decrypt the secret message from the extracted bits
+    decrypted_message = decrypt_secret_message(extracted_bits)
 
-        # Decrypt the secret message from the extracted bits
-        decrypted_message = decrypt_message(extracted_bits)
-        decrypted_message = decrypted_message[:-1]
-        print("Decrypted Message:", decrypted_message)
+    result_label.config(text="Decrypted Message: " + decrypted_message[:-1])
 
-    else:
-        print("Invalid option. Please choose 1 or 2.")
+# Create GUI
+root = tk.Tk()
+root.title("Steganography Tool")
+root.configure(bg=DARK_GREY)
 
-if __name__ == "__main__":
-    main()
+# Embedding Frame
+embed_frame = tk.LabelFrame(root,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Embed Message")
+embed_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+# x0 Entry
+x0_label = tk.Label(embed_frame,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="x0:")
+x0_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
+x0_entry = tk.Entry(embed_frame)
+x0_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+# Secret Message Entry
+secret_message_label = tk.Label(embed_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Secret Message:")
+secret_message_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
+secret_message_entry = tk.Entry(embed_frame)
+secret_message_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+# Embed Button
+embed_button = tk.Button(embed_frame,font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, text="Embed", command=embed_message)
+embed_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="we")
+
+# Decryption Frame
+decrypt_frame = tk.LabelFrame(root,font=FONT, bg=MEDIUM_GREY, fg=WHITE, text="Decrypt Message")
+decrypt_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+# Decryption Button
+decrypt_button = tk.Button(decrypt_frame,font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, text="Decrypt", command=decrypt_message)
+decrypt_button.pack(padx=5, pady=5)
+
+# Result Label
+result_label = tk.Label(root, font=FONT, bg=MEDIUM_GREY, fg=WHITE,text="")
+result_label.pack(padx=10, pady=5)
+
+root.mainloop()

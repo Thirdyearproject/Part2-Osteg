@@ -326,7 +326,6 @@ def encryption(plaintext, key):
 
 
 def decryption(ciphertext, key):
-    print("Enter the key : ")
     key = preparing_key_array(key)
 
     S = KSA(key)
@@ -389,11 +388,7 @@ def extract(frame, key):
                     for i in range(0, len(decoded_data) - 5):
                         final_decoded_msg += decoded_data[i]
                     final_decoded_msg = decryption(final_decoded_msg, key)
-                    print(
-                        "\n\nThe Encoded data which was hidden in the Video was :--\n",
-                        final_decoded_msg,
-                    )
-                    return
+                    return final_decoded_msg
 
 
 def encode_vid_data(n, data, key):
@@ -414,6 +409,7 @@ def encode_vid_data(n, data, key):
     cap.release()
     print("Total number of Frame in selected Video :", max_frame)
     frame_number = 0
+    encripted_data = None
     while vidcap.isOpened():
         frame_number += 1
         ret, frame = vidcap.read()
@@ -423,7 +419,6 @@ def encode_vid_data(n, data, key):
             change_frame_with, encripted_data = embed(frame, data, key)
             frame_ = change_frame_with
             frame = change_frame_with
-            break
         out.write(frame)
 
     print("\nEncoded the data successfully in the video file.")
@@ -435,7 +430,6 @@ def decode_vid_data(frame_, n, key):
     max_frame = 0
     while cap.isOpened():
         ret, frame = cap.read()
-        print(ret)
         if ret == False:
             break
         max_frame += 1
@@ -451,11 +445,6 @@ def decode_vid_data(frame_, n, key):
         if frame_number == int(n):
             extract(frame_, key)
             return
-# Color constants
-DARK_GREY = '#121212'
-MEDIUM_GREY = '#1F1B24'
-OCEAN_BLUE = '#464EB8'
-WHITE = "white"
 
 # Font constants
 FONT = ("Times New Roman", 17)
